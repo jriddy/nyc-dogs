@@ -4,7 +4,7 @@ import pathlib
 from typing import Sequence, MutableMapping, Iterable, Mapping
 
 import attr
-from tornado import httpclient, ioloop, web
+from tornado import ioloop, web
 
 
 logger = logging.getLogger(__name__)
@@ -12,13 +12,16 @@ logger = logging.getLogger(__name__)
 
 def ilen(xs: Iterable) -> int:
     """
-    Count number of instances in any terminator iterable.
+    Count number of instances in any finite-length iterable.
 
     :param xs: any iterable, don't pass infinite iterables here.
     :returns: number of instances
 
     This does not allocate any temporary memory just to get length.
     Note: this consumes generators.  Copy to list if you need that.
+
+    Todo: I feel like this exists in the stdlib or a common library
+    somewhere, i just can't remember...
     """
     acc = 0
     for _ in xs:
@@ -57,7 +60,7 @@ class DataCounter:
         """
         return self._column_names
 
-    def occurances(self, values: MutableMapping[str, str]) -> int:
+    def occurances(self, values: Mapping[str, str]) -> int:
         """
         Count occurances of the ``value`` in ``column, case-insentively.
 
@@ -76,6 +79,11 @@ class CountHandler(web.RequestHandler):
         self.counter = counter
 
     def get(self) -> None:
+        """
+        Do a count query.
+
+        Writes its JSON responses to the client, sending a 400 code on bad args.
+        """
         raw_args = self.request.arguments
         args = {k.lower(): v[-1].decode('utf-8') for k, v in raw_args.items()}
         logging.debug("got count args: %s", args)
@@ -85,6 +93,7 @@ class CountHandler(web.RequestHandler):
             self.set_status(400)
             return
         self.write({"count": self.counter.occurances(args)})
+        # Tornado appends charset thing, which the test doesn't like
         self.set_header('Content-Type', 'application/json')
 
 
@@ -95,10 +104,11 @@ def make_application(data_path) -> web.Application:
     ])
 
 
-def main():
+def main(port=8888):
     logging.basicConfig(level=logging.INFO)
-    app = make_application(pathlib.Path('data/dogs-nyc.csv'))
-    app.listen(8888)
+    default_csv = pathlib.Path(__file__).parent / 'data/dogs-nyc.csv'
+    app = make_application(pathlib.Path(default_csv))
+    app.listen(port)
     ioloop.IOLoop.current().start()
 
 

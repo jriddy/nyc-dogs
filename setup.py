@@ -17,4 +17,5 @@ setuptools.setup(
             'requests',
         ],
     },
+    include_package_data=True,
 )
