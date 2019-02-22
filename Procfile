@@ -1,1 +1,1 @@
-web: python -m nyc_dogs
+web: python -m nyc_dogs $PORT
