@@ -104,7 +104,7 @@ def make_application(data_path) -> web.Application:
     ])
 
 
-def main(port=8888):
+def main(port=5000):
     logging.basicConfig(level=logging.INFO)
     default_csv = pathlib.Path(__file__).parent / 'data/dogs-nyc.csv'
     app = make_application(pathlib.Path(default_csv))
