@@ -92,14 +92,23 @@ class CountHandler(web.RequestHandler):
             self.write({"unknown fields": sorted(unknown)})
             self.set_status(400)
             return
-        self.write({"count": self.counter.occurances(args)})
+        if args:
+            self.write({"count": self.counter.occurances(args)})
+        else:
+            self.write({})
         # Tornado appends charset thing, which the test doesn't like
         self.set_header('Content-Type', 'application/json')
+
+
+class RootHandler(web.RequestHandler):
+    def get(self):
+        self.write({})
 
 
 def make_application(data_path) -> web.Application:
     counter = DataCounter.load_csv(data_path)
     return web.Application([
+        (r'/', RootHandler),
         (r'/count', CountHandler, {'counter': counter}),
     ])
 

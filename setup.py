@@ -2,7 +2,7 @@ import setuptools
 
 
 setuptools.setup(
-    name='tornado-ex',
+    name='nyc-dogs',
     version='0.1.0',
     install_requires=[
         'attrs',
